@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processus de Fabrication de Vaisselle en Porcelaine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=El+Messiri&display=swap" rel="stylesheet">
+    <!-- Application Structure Plan: 
+        Une SPA à défilement vertical avec les sections suivantes :
+        1. En-tête avec titre.
+        2. Section d'introduction (basée sur la diapositive 1).
+        3. Barre de navigation/aperçu du processus : Une série d'icônes/boutons cliquables représentant les 7 étapes, permettant de naviguer vers la section détaillée correspondante.
+        4. Sections détaillées pour chaque étape (basées sur les diapositives 3 à 9) : Chaque section contiendra le titre de l'étape, le texte descriptif, un espace réservé pour l'image suggérée, et les visualisations optionnelles (graphiques Chart.js, diagrammes HTML/CSS).
+            - Étape 1 (Matières Premières) : Graphique en anneau pour la composition.
+            - Étape 6 (Contrôle Qualité) : Graphique à barres pour le taux de conformité (données simulées).
+            - Autres étapes : Diagrammes ou listes structurées en HTML/CSS.
+        5. Section Conclusion/Contact (basée sur la diapositive 10).
+        6. Pied de page.
+        Cette structure a été choisie pour offrir une narration claire du processus tout en permettant une exploration interactive et non linéaire. Elle est plus engageante qu'une simple transposition des diapositives.
+    -->
+    <!-- Visualization & Content Choices:
+        - Introduction (Diapo 1): Texte. Objectif: Informer.
+        - Sommaire (Diapo 2): Utilisé pour créer la navigation interactive des étapes. Objectif: Organiser/Naviguer.
+        - Étape 1 (Matières Premières): Texte + Graphique en anneau (Chart.js) pour composition (Kaolin, Feldspath, Quartz). Objectif: Informer/Comparer. Image: Espace réservé.
+        - Étape 2 (Préparation Émaille): Texte + Liste HTML pour composants. Objectif: Informer. Image: Espace réservé. Option (Tableau comparatif): Liste structurée HTML.
+        - Étape 3 (Modelage et Moulage): Texte + Diagramme HTML/CSS simple pour coulage. Objectif: Organiser/Informer. Image: Espace réservé.
+        - Étape 4 (Formage et Émaillage): Texte + Comparaison HTML/CSS (deux blocs côte à côte). Objectif: Comparer/Informer. Image: Espace réservé.
+        - Étape 5 (Décoration et Impression): Texte + Galerie HTML/CSS (flexbox/grid). Objectif: Organiser/Informer. Image: Espace réservé.
+        - Étape 6 (Contrôle Qualité): Texte + Graphique à barres (Chart.js) pour taux de conformité (données simulées). Objectif: Informer/Comparer. Image: Espace réservé.
+        - Étape 7 (Emballage et Stockage): Texte + Diagramme de flux HTML/CSS. Objectif: Organiser/Informer. Image: Espace réservé.
+        - Conclusion/Contact (Diapo 10): Texte. Objectif: Informer.
+        - Justification: Les graphiques Chart.js sont utilisés pour les données quantitatives. Les diagrammes HTML/CSS sont utilisés pour les processus et les structures, respectant la contrainte NO SVG/Mermaid. Les interactions se concentrent sur la navigation et l'exploration du contenu.
+    -->
+    <style>
+        body { font-family: 'Georgia', serif; background-color: #FDFBF5; /* Blanc cassé chaud */ color: #3A3B3C; /* Gris foncé doux */ }
+        .title-font { font-family: 'Garamond', serif; }
+        .accent-color { color: #B8860B; /* Or foncé subtil */ }
+        .accent-bg { background-color: #B8860B; }
+        .secondary-accent-color { color: #4682B4; /* Bleu acier subtil */ }
+        .secondary-accent-bg { background-color: #4682B4; }
+        .card { background-color: #FFFFFF; border-left: 4px solid #B8860B; }
+        .nav-button {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-button:hover, .nav-button.active {
+            transform: translateY(-2px);
+            border-bottom-color: #B8860B; /* Or foncé */
+            color: #B8860B;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px; /* Ajusté pour un meilleur affichage dans une mise en page à une colonne */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px; /* Ajusté */
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 320px; max-height: 400px; }
+        }
+        .process-step-vis {
+            border: 1px solid #D4C19A; /* Or pâle */
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            text-align: center;
+            background-color: #FFFDF7;
+        }
+        .process-arrow-vis {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem; /* 24px */
+            color: #B8860B; /* Or foncé */
+            padding: 0.5rem 0;
+        }
+        /* Style pour la galerie d'images de décoration */
+        .decoration-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .gallery-item {
+            border: 1px solid #E0E0E0; /* Gris clair */
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            text-align: center;
+            background-color: #F9F9F9;
+        }
+        .gallery-item-placeholder {
+            width: 100%;
+            height: 100px;
+            background-color: #ECECEC; /* Gris très clair */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #A0A0A0; /* Gris moyen */
+            font-size: 0.875rem; /* 14px */
+            border-radius: 0.125rem; /* 2px */
+        }
+        .el-messiri-font {
+            font-family: 'El Messiri', sans-serif;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="py-8 bg-gradient-to-r from-[#FAF5E9] to-[#FDFBF5] shadow-md">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex flex-col md:flex-row items-center justify-center mb-4">
+                <img src="logo ab.png" alt="Ma photo" width="200">
+                <p style="margin-left: 20px; font-size: 80px; font-family: El Messiri; color: darkblue;">SARL AB CERAM</p>
+            </div>
+            <h1 class="text-4xl md:text-5xl title-font font-bold accent-color">Fabrication de Vaisselle en Porcelaine</h1>
+            <p class="mt-2 text-lg md:text-xl text-gray-700">Processus Industriel de Production – <span class="font-semibold">SARL AB CERAM</span></p>
+        </div>
+    </header>
+
+    <nav class="sticky top-0 z-50 bg-white shadow-lg py-3">
+        <div class="container mx-auto px-4">
+            <ul class="flex flex-wrap justify-center items-center space-x-2 sm:space-x-3 md:space-x-4">
+                <li><button onclick="scrollToSection('introduction')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Introduction</button></li>
+                <li><button onclick="scrollToSection('etape1')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Matières Premières</button></li>
+                <li><button onclick="scrollToSection('etape2')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Émaille</button></li>
+                <li><button onclick="scrollToSection('etape3')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Modelage</button></li>
+                <li><button onclick="scrollToSection('etape4')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Formage</button></li>
+                <li><button onclick="scrollToSection('etape5')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Décoration</button></li>
+                <li><button onclick="scrollToSection('etape6')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Qualité</button></li>
+                <li><button onclick="scrollToSection('etape7')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Emballage</button></li>
+                <li><button onclick="scrollToSection('conclusion')" class="nav-button text-sm sm:text-base font-medium text-gray-600 hover:text-opacity-80 px-2 py-1">Contact</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-6 md:p-10">
+        <section id="introduction" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Bienvenue dans l'Art de la Porcelaine</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                La fabrication de la vaisselle en porcelaine est un art ancestral allié à une précision industrielle. Ce processus complexe transforme des matières premières modestes en objets d'une élégance et d'une durabilité exceptionnelles. Chez AB CERAM, nous perpétuons cette tradition avec passion et innovation, en veillant à ce que chaque pièce qui sort de nos ateliers soit un gage de qualité et de raffinement.
+            </p>
+            <p class="text-lg text-gray-700 leading-relaxed">
+                Cette page vous invite à découvrir les secrets de fabrication, étape par étape, de nos collections de vaisselle en porcelaine. De la sélection minutieuse des minerais à l'emballage soigné du produit fini, explorez un savoir-faire unique.
+            </p>
+            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                <p class="text-yellow-700"><span class="font-bold"></span> Vue d’ensemble de l'usine AB CERAM.</p>
+                <img src="usine logo.png" alt="Ma photo" width="1200">
+            </div>
+        </section>
+        <div id="process-visualization" class="mb-12">
+            <h3 class="text-2xl title-font font-semibold mb-6 text-center secondary-accent-color">
+                Aperçu du Processus de Fabrication
+            </h3>
+<div class="grid grid-cols-1 gap-4 items-stretch">
+    <div class="process-step-vis">⛏️<br>Matières Premières</div>
+    <div class="process-arrow-vis text-center">↓</div>
+    
+    <div class="process-step-vis">💧<br>Préparation Émaille</div>
+    <div class="process-arrow-vis text-center">↓</div>
+    
+    <div class="process-step-vis">🏺<br>Modelage & Moulage</div>
+    <div class="process-arrow-vis text-center">↓</div>
+    
+    <div class="process-step-vis">✨<br>Formage & Émaillage</div>
+    <div class="process-arrow-vis text-center">↓</div>
+    
+    <div class="process-step-vis">🎨<br>Décoration & Impression</div>
+    <div class="process-arrow-vis text-center">↓</div>
+    
+    <div class="process-step-vis">🔬<br>Contrôle Qualité</div>
+    <div class="process-arrow-vis text-center">↓</div>
+    
+    <div class="process-step-vis">📦<br>Emballage & Stockage</div>
+  </div>
+</div>
+        <section id="etape1" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 1 : Préparation des Matières Premières</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                Tout commence par une sélection rigoureuse des minerais. Le kaolin pour sa blancheur et sa plasticité, le feldspath agissant comme fondant, et le quartz pour la structure et la translucidité. Ces composants sont ensuite pesés avec précision et subissent un broyage fin pour obtenir une pâte liquide homogène appelée "slip" ou barbotine. La qualité de cette préparation initiale est déterminante pour les propriétés finales de la porcelaine.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Composition Typique :</h4>
+                    <div class="chart-container mx-auto md:mx-0">
+                        <canvas id="matieresPremieresChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2 text-center">Ce graphique illustre les proportions typiques des principaux minerais utilisés.</p>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Poudres de Céramiques.</p>
+                    <img src="poudre.png" alt="Photo de minerais utilisés pour la porcelaine" class="w-full h-48 object-cover mt-2 rounded">
+                    <p class="text-yellow-700 mt-2"><span class="font-bold">Option :</span> Schéma simple du processus de broyage.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="etape2" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 2 : Préparation de l’Émaille</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                L'émail est la couche vitreuse qui recouvre la porcelaine, lui conférant sa brillance, son imperméabilité et sa résistance. Sa préparation exige un mélange précis de composants tels que les frittes (verres pré-fondus), les pigments pour la couleur, et les fondants. Ce mélange est ensuite broyé finement et sa viscosité est soigneusement ajustée pour garantir une application uniforme et une fusion parfaite lors de la cuisson.
+            </p>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Composants Clés de l'Émaille :</h4>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1 mb-4">
+                        <li>Frittes (base vitreuse)</li>
+                        <li>Pigments (pour la couleur)</li>
+                        <li>Fondants (pour abaisser le point de fusion)</li>
+                        <li>Agents de suspension (pour la consistance)</li>
+                    </ul>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Types d'Émailles Couramment Utilisés :</h4>
+                     <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Émail transparent brillant</li>
+                        <li>Émail mat</li>
+                        <li>Émail coloré (diverses teintes)</li>
+                        <li>Émail réactif (créant des effets uniques)</li>
+                    </ul>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Operation de Preparation de l'Email.</p>
+                    <img src="pre emaille.png" alt="Laborantin préparant l'émail" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+
+        <section id="etape3" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 3 : Modelage et Moulage</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                Le "slip" préparé est coulé dans des moules en plâtre poreux. Le plâtre absorbe l'eau du slip, formant une couche solide de porcelaine à la surface du moule. Une fois l'épaisseur désirée atteinte, l'excédent de slip est vidé. Les pièces sont ensuite laissées à sécher partiellement dans les moules avant d'être soigneusement démoulées. Cette étape définit la forme brute de la future vaisselle.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Processus de Coulage (Schéma Simplifié) :</h4>
+                    <div class="space-y-3">
+                        <div class="process-step-vis">1. Préparation du moule en plâtre</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">2. Coulée du "slip" dans le moule</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">3. Absorption d'eau par le plâtre & formation de la paroi</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">4. Vidage de l'excédent de "slip"</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">5. Séchage partiel & Démoulage</div>
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Operation de Coulage.</p>
+                    <img src="coulage.png" alt="Ouvrier versant le slip dans un moule" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+
+        <section id="etape4" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 4 : Formage et Émaillage</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                Après démoulage, les pièces "crues" sont encore fragiles. Elles subissent des retouches manuelles ou mécaniques pour éliminer les imperfections et affiner les détails (ex: lissage des bords, pose des anses). Vient ensuite l'application de l'émail, qui peut se faire par trempage, vaporisation (pulvérisation) ou badigeonnage, selon la forme de la pièce et l'effet désiré. Une couche uniforme est essentielle.
+            </p>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Comparaison Avant/Après Émaillage :</h4>
+                    <div class="flex space-x-4">
+                        <div class="flex-1 p-3 border rounded bg-gray-50 text-center">
+                            <p class="font-medium">Avant Émaillage</p>
+                            <div class="w-full h-32 bg-gray-200 my-2 rounded flex items-center justify-center text-gray-500">Aspect mat, poreux</div>
+                            <img src="avant.png" alt="Pièce de porcelaine avant émaillage" class="w-full h-32 object-cover my-2 rounded">
+                            <p class="text-sm text-gray-600">Pièce "biscuitée" ou crue</p>
+                        </div>
+                        <div class="flex-1 p-3 border rounded bg-gray-50 text-center">
+                            <p class="font-medium">Après Émaillage</p>
+                            <div class="w-full h-32 bg-gray-200 my-2 rounded flex items-center justify-center text-gray-500">Aspect brillant, lisse (après cuisson)</div>
+                            <img src="apres.png" alt="Pièce de porcelaine après émaillage" class="w-full h-32 object-cover my-2 rounded">
+                            <p class="text-sm text-gray-600">Prête pour la cuisson d'émail</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span>Operation d'émaillage Par Pulverisation.</p>
+                    <img src="pulver.png" alt="Pièce de porcelaine en cours d'émaillage" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+
+        <section id="etape5" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 5 : Décoration et Impression</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                La décoration est l'étape qui confère à la porcelaine son caractère unique et sa valeur esthétique. Plusieurs techniques peuvent être employées, avant ou après la cuisson de l'émail : peinture à la main pour des pièces d'exception, application de transferts (décalcomanies) pour des motifs complexes et répétitifs, ou sérigraphie. Des finitions spéciales comme la dorure à l'or fin ou des motifs personnalisés peuvent également être ajoutées.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Galerie de Styles de Décoration (Exemples) :</h4>
+                    <div class="decoration-gallery">
+                        <div class="gallery-item">
+                             <img src="decalco.png" alt="Motif Floral Classique" class="w-full h-24 object-cover rounded mb-1">
+                            <p class="text-sm mt-1">Peinture ou Transfert</p>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="serigraphie.png" alt="Design Géométrique Moderne" class="w-full h-24 object-cover rounded mb-1">
+                            <p class="text-sm mt-1">Sérigraphie</p>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="dorrure.png" alt="Filet Or Fin" class="w-full h-24 object-cover rounded mb-1">
+                            <p class="text-sm mt-1">Dorure</p>
+                        </div>
+                         <div class="gallery-item">
+                            <img src="personalise.png" class="w-full h-24 object-cover rounded mb-1">
+                            <p class="text-sm mt-1">Sur demande</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Artisan décorant un motif appliqué.</p>
+                    <img src="manual deco.png" alt="Artisan décorant une assiette en porcelaine" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+
+        <section id="etape6" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 6 : Contrôle Qualité et Laboratoire</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                La qualité est notre priorité absolue. À chaque étape clé de la production, des contrôles rigoureux sont effectués. Notre laboratoire réalise des tests physiques (résistance aux chocs, à l'abrasion) et chimiques (conformité alimentaire, absence de métaux lourds). Le contrôle dimensionnel, la résistance thermique, et la brillance de l'émail sont également vérifiés pour s'assurer que chaque produit répond aux normes les plus strictes.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Indicateurs de Qualité (Exemples) :</h4>
+                    <div class="chart-container mx-auto md:mx-0">
+                        <canvas id="controleQualiteChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2 text-center">Ce graphique montre des exemples de taux de conformité pour différents tests qualité.</p>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Technicien inspectant une pièce .</p>
+                    <img src="labo.png" alt="Technicien inspectant une pièce de porcelaine" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+
+        <section id="etape7" class="mb-12 pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Étape 7 : Emballage et Stockage</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                Une fois les contrôles finaux validés, la vaisselle en porcelaine est prête pour le conditionnement. Chaque pièce est emballée avec le plus grand soin pour la protéger durant le transport et le stockage. Notre organisation logistique assure une gestion efficace des stocks et une expédition rapide et fiable vers nos clients, qu'ils soient nationaux ou internationaux.
+            </p>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Flux Logistique Simplifié :</h4>
+                    <div class="space-y-3">
+                        <div class="process-step-vis">1. Contrôle qualité final</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">2. Conditionnement individuel & par set</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">3. Mise en stock (entrepôt climatisé)</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">4. Préparation des commandes clients</div>
+                        <div class="process-arrow-vis">↓</div>
+                        <div class="process-step-vis">5. Expédition (nationale/internationale)</div>
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Operation d'emballage et stockage.</p>
+                    <img src="cartons.png" alt="Employé emballant une assiette en porcelaine" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="pt-16 -mt-16 card p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl title-font font-semibold mb-4 secondary-accent-color">Merci pour votre attention !</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                Notre processus de fabrication allie tradition artisanale et technologies de pointe pour vous offrir une vaisselle en porcelaine d'une qualité irréprochable. Nous sommes fiers de notre engagement envers l'excellence, l'innovation constante et le respect d'un savoir-faire transmis de génération en génération.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Nos Engagements :</h4>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1 mb-4">
+                        <li>Qualité supérieure et durabilité</li>
+                        <li>Innovation dans les designs et techniques</li>
+                        <li>Respect de la tradition artisanale</li>
+                        <li>Service client attentif</li>
+                    </ul>
+                    <h4 class="text-xl font-semibold mb-2 accent-color">Contactez-nous :</h4>
+                    <p class="text-gray-700"><strong>SARL AB CERAM</strong></p>
+                    <p class="text-gray-700">Site web : <a href="https://[Votre site web]" target="_blank" class="hover:underline secondary-accent-color">[Votre site web]</a></p>
+                    <p class="text-gray-700">Téléphone : +213 (0) 778 885 457</p>
+                    <p class="text-gray-700">E-mail : <a href="mailto:abceram1947@gmail.com" class="hover:underline secondary-accent-color">abceram1947@gmail.com</a></p>
+                    <div class="mt-4">
+                         <p class="text-gray-700 font-semibold">Logo de l'entreprise :</p>
+                         <img src="logo ab.png" alt="Logo de l'entreprise" class="w-32 h-16 object-contain mt-1 rounded">
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-center">
+                    <p class="text-yellow-700"><span class="font-bold"></span> Produit final (assiette, tasse, service complet) .</p>
+                    <img src="produits.png" alt="Produit final en porcelaine" class="w-full h-48 object-cover mt-2 rounded">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-12 py-8 bg-gray-800 text-gray-300 text-center">
+        <p>&copy; <span id="currentYear"></span> SARL AB CERAM. Tous droits réservés.</p>
+        <p class="text-sm">Réalisation BABAADDOUN Fayçal.</p>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Active state for nav buttons
+                const navButtons = document.querySelectorAll('.nav-button');
+                navButtons.forEach(button => {
+                    button.classList.remove('active', 'accent-color');
+                    if (button.getAttribute('onclick').includes(sectionId)) {
+                        button.classList.add('active', 'accent-color');
+                    }
+                });
+            }
+        }
+        
+        // Set initial active button based on hash or first section
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.substring(1);
+            const initialSection = hash || 'introduction';
+            const initialButton = Array.from(document.querySelectorAll('.nav-button')).find(btn => btn.getAttribute('onclick').includes(initialSection));
+            if (initialButton) {
+                 initialButton.classList.add('active', 'accent-color');
+            } else {
+                 const firstButton = document.querySelector('.nav-button');
+                 if(firstButton) firstButton.classList.add('active', 'accent-color');
+            }
+        });
+
+
+        const CHART_FONT_COLOR = '#3A3B3C';
+        const CHART_GRID_COLOR = '#E0E0E0';
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: CHART_FONT_COLOR, font: { family: 'Georgia', size: 12 } }
+                },
+                tooltip: {
+                    titleFont: { family: 'Georgia', size: 14, weight: 'bold' },
+                    bodyFont: { family: 'Georgia', size: 12 },
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            return Array.isArray(label) ? label.join(' ') : label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: CHART_FONT_COLOR, font: { family: 'Georgia', size: 11 } }, grid: { color: CHART_GRID_COLOR } },
+                y: { ticks: { color: CHART_FONT_COLOR, font: { family: 'Georgia', size: 11 } }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true }
+            }
+        };
+
+        // Chart pour Matières Premières
+        const matieresCtx = document.getElementById('matieresPremieresChart')?.getContext('2d');
+        if (matieresCtx) {
+            new Chart(matieresCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Kaolin', 'Feldspath', 'Quartz'],
+                    datasets: [{
+                        label: 'Composition des Matières Premières',
+                        data: [50, 25, 25], // Pourcentages exemples
+                        backgroundColor: ['#EADDCA', '#D4C19A', '#B8860B'], // Nuances de beige et or
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: { position: 'bottom', labels: {...commonChartOptions.plugins.legend.labels} }
+                    }
+                }
+            });
+        }
+
+        // Chart pour Contrôle Qualité
+        const qualiteCtx = document.getElementById('controleQualiteChart')?.getContext('2d');
+        if (qualiteCtx) {
+            new Chart(qualiteCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Résistance Chocs', 'Conformité Dim.', 'Brillance Émail', 'Abs. Métaux Lourds'],
+                    datasets: [{
+                        label: 'Taux de Conformité (%)',
+                        data: [99.5, 99.8, 99.2, 100], // Données simulées
+                        backgroundColor: ['#A0C4FF', '#BDB2FF', '#C9ADA7', '#9A8C98'].map(color => color + 'BF'), // Couleurs pastels avec transparence
+                        borderColor: ['#A0C4FF', '#BDB2FF', '#C9ADA7', '#9A8C98'],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                     indexAxis: 'y',
+                    scales: {
+                        x: { ...commonChartOptions.scales.x, max: 100, ticks: {...commonChartOptions.scales.x.ticks, callback: value => value + "%"} },
+                        y: { ...commonChartOptions.scales.y }
+                    },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
